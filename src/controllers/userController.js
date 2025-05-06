@@ -61,17 +61,20 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Create new user
+    // Create new user with plain password
     user = new User({
       name,
       email,
-      password,
+      password, // This password will be hashed in the next step
       role: role || "user",
     });
 
-    // Hash password and save user
+    // Hash password here (ensuring it happens)
+    console.log("Manually hashing password in userController");
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
+    console.log("Password hashed successfully in userController");
+    
     await user.save();
 
     // Create JWT

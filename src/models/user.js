@@ -79,19 +79,30 @@ const User =
     })
   );
 
-// Only add pre-save hooks if we're defining the model for the first time
-if (!mongoose.models.User) {
-  // Hash password before saving
-  User.schema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next();
-    this.password = await bcrypt.hash(this.password, 12);
+// Hash password before saving
+User.schema.pre("save", async function (next) {
+  console.log("--- USER PRE-SAVE HOOK TRIGGERED ---"); // Log hook start
+  if (!this.isModified("password")) {
+    console.log("Password not modified, skipping hash."); // Log skip
+    return next();
+  }
+  try {
+    console.log(`Hashing password for user: ${this.email}`); // Log hashing attempt
+    const plainPassword = this.password; // Log plain password before hashing
+    console.log(`Plain password length: ${plainPassword ? plainPassword.length : 'undefined'}`);
+    
+    this.password = await bcrypt.hash(plainPassword, 12);
+    console.log(`Password hashed successfully for: ${this.email}`); // Log success
     next();
-  });
+  } catch (error) {
+    console.error(`--- ERROR HASHING PASSWORD for ${this.email}: ---`, error); // Log any error during hashing
+    next(error); // Pass error to Mongoose
+  }
+});
 
-  // Add compare password method
-  User.schema.methods.comparePassword = async function (candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
-  };
-}
+// Add compare password method
+User.schema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = User;

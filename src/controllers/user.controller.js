@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const bcrypt = require("bcryptjs");
 
 /**
  * Get all users
@@ -45,11 +46,16 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Create new user
+    // Explicitly hash the password
+    console.log("Manually hashing password in user.controller createUser");
+    const hashedPassword = await bcrypt.hash(password, 12);
+    console.log("Password hashed successfully in user.controller");
+
+    // Create new user with hashed password
     const user = new User({
       name,
       email,
-      password,
+      password: hashedPassword, // Use the already hashed password
       role: role || "user",
     });
 
@@ -182,11 +188,16 @@ exports.createAdminUser = async (req, res) => {
       }
     }
 
-    // Create the admin user - enforce admin or superadmin role
+    // Explicitly hash the password
+    console.log("Manually hashing password in user.controller createAdminUser");
+    const hashedPassword = await bcrypt.hash(req.body.password, 12);
+    console.log("Admin password hashed successfully in user.controller");
+
+    // Create the admin user with hashed password
     const newUser = new User({
       name: req.body.name,
       email: req.body.email,
-      password: req.body.password,
+      password: hashedPassword, // Use already hashed password
       role: ["admin", "superadmin"].includes(req.body.role)
         ? req.body.role
         : "admin",

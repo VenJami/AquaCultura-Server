@@ -18,14 +18,20 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Create new user, allowing role to be specified if provided
+    // Hash the password manually here
+    console.log("Manually hashing password in controller");
+    const hashedPassword = await bcryptjs.hash(password, 12);
+    console.log("Password hashed successfully in controller");
+
+    // Create new user with the hashed password
     const user = new User({
       name,
       email,
-      password,
+      password: hashedPassword, // Use the already hashed password
       role: role || "user", // Use provided role or default to "user"
     });
 
+    // Save the user (the password is already hashed)
     await user.save();
 
     // Notify admins about new user registration
@@ -71,11 +77,16 @@ exports.registerAdmin = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Create new admin user
+    // Hash the password manually here
+    console.log("Manually hashing admin password in controller");
+    const hashedPassword = await bcryptjs.hash(password, 12);
+    console.log("Admin password hashed successfully in controller");
+
+    // Create new admin user with hashed password
     const user = new User({
       name,
       email,
-      password,
+      password: hashedPassword, // Use the already hashed password
       role: "admin", // Always set role to admin
     });
 
